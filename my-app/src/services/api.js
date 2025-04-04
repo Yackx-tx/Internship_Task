@@ -228,3 +228,31 @@ const createNewsArticle = (movie, index) => {
   }
 }
 
+// det the details of the movies by there id
+
+export const getMovieById = async (movieId) => {
+  // Replace with actual API endpoint and logic
+  const response = await fetch(`/api/movies/${movieId}`)
+  const data = await response.json()
+  return {
+    id: data.id,
+    title: data.title,
+    year: data.year,
+    duration: data.duration,
+    rating: data.rating,
+    genre: data.genre,
+    plot: data.plot,
+    director: data.director,
+    actors: data.actors,
+    posterUrl: data.posterUrl,
+  }
+}
+
+export const getMovieVideos = async (movieId) => {
+  // Replace with actual API endpoint and logic
+  const response = await fetch(`/api/movies/${movieId}/videos`)
+  const data = await response.json()
+  return data
+}
+
+

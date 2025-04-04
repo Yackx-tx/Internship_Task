@@ -44,7 +44,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <div className="relative bg-black text-white">
+    <div className="relative bg-gradient-to-tr from-black via-black to-red-900/40 text-white">
       {/* Hero Section */}
       <section className="relative w-full h-[80vh] overflow-hidden flex items-center">
         <div className="container mx-auto px-4">

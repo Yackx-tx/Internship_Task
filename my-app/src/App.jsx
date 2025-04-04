@@ -7,6 +7,8 @@ import Genre from "./components/Genre"
 import News from "./components/News"
 import Movies from "./components/Movies"
 import TVShows from "./components/TvShows"
+import ContactUs from "./components/ContactUs"
+import PrivacyPolicy from "./components/PrivacyPolicy"
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 
 function App() {
@@ -22,6 +24,8 @@ function App() {
           <Route path="/news" element={<News />} />
           <Route path="/movies" element={<Movies />} />
           <Route path="/tvShows" element={<TVShows />} />
+          <Route path="/contactUs" element={<ContactUs />} />
+          <Route path="/privacyPolicy" element={<PrivacyPolicy />} />
         </Routes>
         <Footer />
       </div>
