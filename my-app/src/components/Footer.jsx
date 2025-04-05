@@ -56,7 +56,7 @@ const Footer = () => {
             <div className="space-y-3">
               <p className="flex items-start">
                 <Mail size={18} className="mr-2 mt-0.5" />
-                <span>support@movieflix.com</span>
+                <span>support@moviebazer.com</span>
               </p>
               <Link
                 to="/contact"
