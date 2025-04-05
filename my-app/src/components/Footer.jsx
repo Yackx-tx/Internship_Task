@@ -72,9 +72,9 @@ const Footer = () => {
         <div className="border-t border-gray-700 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm mb-4 md:mb-0">&copy; {currentYear} MovieBazer. All rights reserved.</p>
           <div className="flex space-x-4 text-sm">
-            <FooterLink to="/privacy">Privacy Policy</FooterLink>
-            <FooterLink to="/terms">Terms of Service</FooterLink>
-            <FooterLink to="/faq">FAQ</FooterLink>
+            <FooterLink to="/privacypolicy">Privacy Policy</FooterLink>
+            <FooterLink to="/contactus">Contact Us</FooterLink>
+            <FooterLink to="https://github.com/Yackx-Tx/Internship_Task">Source Code</FooterLink>
           </div>
         </div>
       </div>
