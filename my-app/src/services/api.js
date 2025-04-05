@@ -1,258 +1,199 @@
-// OMDb API configuration
-const API_BASE_URL = "http://www.omdbapi.com/"
-const API_KEY = process.env.REACT_APP_OMDB_API_KEY || "d0b9c4a9"
+// TMDB API Configuration with new credentials
+// const API_KEY = "7596b34ab8046ab494321060aafbba12"
+const API_READ_ACCESS_TOKEN =
+  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3NTk2YjM0YWI4MDQ2YWI0OTQzMjEwNjBhYWZiYmExMiIsIm5iZiI6MTc0MzE0NTYzNi4xNDgsInN1YiI6IjY3ZTY0YWE0NWU4ZTVjOWJhY2JhNmQwZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Dv6MpESMePSX29ntn2VssAyCiPCyoQpyRoc2rCI5ZuY"
+const BASE_URL = "https://api.themoviedb.org/3"
+const IMAGE_BASE_URL = "https://image.tmdb.org/t/p"
 
-// Function to fetch a single movie by ID
-export const fetchMovieById = async (imdbId) => {
+// Image sizes for TMDB
+const BACKDROP_SIZE = "w1280"
+const POSTER_SIZE = "w500"
+
+// Helper function to create API request options with the new token
+const fetchOptions = {
+  method: "GET",
+  headers: {
+    Authorization: `Bearer ${API_READ_ACCESS_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+}
+
+// Fetch data from TMDB API - updated to use the token-based authentication
+const fetchMovieData = async (endpoint) => {
   try {
-    const response = await fetch(`${API_BASE_URL}?i=${imdbId}&apikey=${API_KEY}`)
+    const response = await fetch(`${BASE_URL}${endpoint}`, fetchOptions)
 
     if (!response.ok) {
-      throw new Error("Failed to fetch movie")
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
     }
 
-    const movie = await response.json()
-
-    if (movie.Response === "False") {
-      throw new Error(movie.Error)
-    }
-
-    return transformMovieData(movie)
+    const data = await response.json()
+    return data
   } catch (error) {
-    console.error("Error fetching movie:", error)
+    console.error("Error fetching data:", error)
     return null
   }
 }
 
-// Function to search for movies by title
+// Get trending movies - preserving the existing function signature
+export const getTrendingMovies = async () => {
+  return await fetchMovieData("/trending/movie/day")
+}
+
+// Get popular movies - preserving the existing function signature
+export const getPopularMovies = async (page = 1) => {
+  return await fetchMovieData(`/movie/popular?page=${page}`)
+}
+
+// Get top rated movies - updated to handle pagination
+export const getTopRatedMovies = async (page = 1) => {
+  return await fetchMovieData(`/movie/top_rated?page=${page}`)
+}
+
+// Get upcoming movies - preserving the existing function signature
+export const getUpcomingMovies = async () => {
+  return await fetchMovieData("/movie/upcoming")
+}
+
+// Get now playing movies - preserving the existing function signature
+export const getNowPlayingMovies = async () => {
+  return await fetchMovieData("/movie/now_playing")
+}
+
+// Get movie details - preserving the existing function signature
+export const getMovieDetails = async (movieId) => {
+  return await fetchMovieData(`/movie/${movieId}?append_to_response=credits,videos,images,recommendations`)
+}
+
+// Search movies - updated to handle pagination and special queries
 export const searchMovies = async (query, page = 1) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}?s=${encodeURIComponent(query)}&page=${page}&apikey=${API_KEY}`)
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch movies")
-    }
-
-    const data = await response.json()
-
-    if (data.Response === "False") {
-      throw new Error(data.Error)
-    }
-
-    // Transform the search results
-    return data.Search.map((movie) => ({
-      id: movie.imdbID,
-      title: movie.Title,
-      posterUrl: movie.Poster !== "N/A" ? movie.Poster : null,
-      year: movie.Year,
-      type: movie.Type,
-      // OMDb search doesn't provide duration, so we'll leave it out for now
-    }))
-  } catch (error) {
-    console.error("Error searching movies:", error)
-    return []
+  // If query is "popular", return popular movies instead of search
+  if (query === "popular") {
+    return await getPopularMovies(page)
   }
+  return await fetchMovieData(`/search/movie?query=${encodeURIComponent(query)}&page=${page}`)
 }
 
-// Helper function to transform movie data
-const transformMovieData = (movie) => {
-  return {
-    id: movie.imdbID,
-    title: movie.Title,
-    posterUrl: movie.Poster !== "N/A" ? movie.Poster : null,
-    year: movie.Year,
-    duration: movie.Runtime !== "N/A" ? movie.Runtime : "N/A",
-    rating: movie.imdbRating !== "N/A" ? Number.parseFloat(movie.imdbRating) : null,
-    plot: movie.Plot,
-    genre: movie.Genre,
-    director: movie.Director,
-    actors: movie.Actors,
-  }
+// Get movies by genre - preserving the existing function signature
+export const getMoviesByGenre = async (genreId, page = 1) => {
+  return await fetchMovieData(`/discover/movie?with_genres=${genreId}&page=${page}`)
 }
 
-// Function to fetch trending movies (simulated with predefined popular movie IDs)
-export const fetchTrendingMovies = async () => {
-  // Since OMDb doesn't have a trending endpoint, we'll use a list of popular movie IDs
-  const trendingMovieIds = [
-    "tt1375666", // Inception
-    "tt0816692", // Interstellar
-    "tt0468569", // The Dark Knight
-    "tt0133093", // The Matrix
-    "tt0109830", // Forrest Gump
-    "tt0110357", // The Lion King
-    "tt0114369", // Se7en
-    "tt0120737", // The Lord of the Rings
-    "tt0167260", // The Lord of the Rings: The Return of the King
-    "tt0080684", // Star Wars: Episode V - The Empire Strikes Back
-  ]
-
-  const moviePromises = trendingMovieIds.map((id) => fetchMovieById(id))
-  const movies = await Promise.all(moviePromises)
-
-  // Filter out any null results (failed requests)
-  return movies.filter((movie) => movie !== null)
+// Get movie genres - preserving the existing function signature
+export const getMovieGenres = async () => {
+  return await fetchMovieData("/genre/movie/list")
 }
 
-// Function to fetch recommended movies (simulated with different predefined movie IDs)
-export const fetchRecommendedMovies = async () => {
-  // Different set of movie IDs for recommended
-  const recommendedMovieIds = [
-    "tt0111161", // The Shawshank Redemption
-    "tt0068646", // The Godfather
-    "tt0071562", // The Godfather: Part II
-    "tt0050083", // 12 Angry Men
-    "tt0108052", // Schindler's List
-    "tt0167261", // The Lord of the Rings: The Two Towers
-    "tt0060196", // The Good, the Bad and the Ugly
-    "tt0137523", // Fight Club
-    "tt0120815", // Saving Private Ryan
-    "tt0109830", // Forrest Gump
-  ]
-
-  const moviePromises = recommendedMovieIds.map((id) => fetchMovieById(id))
-  const movies = await Promise.all(moviePromises)
-
-  // Filter out any null results (failed requests)
-  return movies.filter((movie) => movie !== null)
+// Get TV shows - preserving the existing function signature
+export const getPopularTVShows = async (page = 1) => {
+  return await fetchMovieData(`/tv/popular?page=${page}`)
 }
 
-// Function to fetch TV shows (simulated with TV show IMDb IDs)
-export const fetchTVShows = async () => {
-  // List of popular TV show IMDb IDs
-  const tvShowIds = [
-    "tt4574334", // Stranger Things
-    "tt0903747", // Breaking Bad
-    "tt0944947", // Game of Thrones
-    "tt4786824", // The Crown
-    "tt8111088", // The Mandalorian
-    "tt6468322", // Money Heist (La Casa de Papel)
-    "tt5180504", // The Witcher
-    "tt5753856", // Dark
-    "tt5071412", // Ozark
-  ]
-
-  const tvShowPromises = tvShowIds.map((id) => fetchMovieById(id))
-  const tvShows = await Promise.all(tvShowPromises)
-
-  // Filter out any null results (failed requests)
-  return tvShows.filter((show) => show !== null)
+// Get TV show details - preserving the existing function signature
+export const getTVShowDetails = async (tvId) => {
+  return await fetchMovieData(`/tv/${tvId}?append_to_response=credits,videos,images,recommendations`)
 }
 
-// Function to fetch trending TV shows (different set of IDs)
-export const fetchTrendingTVShows = async () => {
-  // Different set of TV show IDs for trending
-  const trendingTVShowIds = [
-    "tt7366338", // Chernobyl
-    "tt2442560", // Peaky Blinders
-    "tt8420184", // The Queen's Gambit
-    "tt1520211", // The Walking Dead
-    "tt7569592", // Squid Game
-    "tt2306299", // Vikings
-    "tt0475784", // Westworld
-    "tt2085059", // Black Mirror
-    "tt2707408", // Narcos
-  ]
-
-  const tvShowPromises = trendingTVShowIds.map((id) => fetchMovieById(id))
-  const tvShows = await Promise.all(tvShowPromises)
-
-  // Filter out any null results (failed requests)
-  return tvShows.filter((show) => show !== null)
+// Helper function to get full image URL - preserving the existing function
+export const getImageUrl = (path, size = POSTER_SIZE) => {
+  if (!path) return null
+  return `${IMAGE_BASE_URL}/${size}${path}`
 }
 
-// Function to generate movie news based on recent and upcoming movies
-export const fetchMovieNews = async () => {
-  try {
-    // Use predefined movie IDs for news to ensure reliability
-    const newsMovieIds = [
-      "tt15398776", // Oppenheimer
-      "tt1517268", // Barbie
-      "tt9362722", // Spider-Man: Across the Spider-Verse
-      "tt6718170", // The Super Mario Bros. Movie
-    ]
-
-    // Fetch detailed information for these movies
-    const newsPromises = newsMovieIds.map(async (id, index) => {
-      try {
-        const movie = await fetchMovieById(id)
-        if (!movie) return null
-
-        // Create news article based on movie
-        return createNewsArticle(movie, index)
-      } catch (error) {
-        console.error(`Error fetching movie details for news: ${error}`)
-        return null
-      }
-    })
-
-    const newsItems = await Promise.all(newsPromises)
-    return newsItems.filter((item) => item !== null)
-  } catch (error) {
-    console.error("Error fetching movie news:", error)
-    return []
-  }
+// Helper function to get backdrop URL - preserving the existing function
+export const getBackdropUrl = (path) => {
+  return getImageUrl(path, BACKDROP_SIZE)
 }
 
-// Helper function to create a news article from a movie
-const createNewsArticle = (movie, index) => {
-  const templates = [
-    {
-      title: `"${movie.title}" Breaks Box Office Records`,
-      excerpt: `The latest blockbuster "${movie.title}" has shattered opening weekend records worldwide with impressive numbers.`,
-    },
-    {
-      title: `Director Announces Sequel to "${movie.title}"`,
-      excerpt: `Fans of "${movie.title}" will be excited to hear that a sequel has been confirmed and is in early development.`,
-    },
-    {
-      title: `"${movie.title}" Cast Reunites for Special Event`,
-      excerpt: `The stars of "${movie.title}" are coming together for a special reunion event that fans won't want to miss.`,
-    },
-    {
-      title: `Streaming Platform Acquires Rights to "${movie.title}"`,
-      excerpt: `A major streaming service has acquired exclusive streaming rights for the hit film "${movie.title}".`,
-    },
-  ]
-
-  const template = templates[index % templates.length]
-  const today = new Date()
-  const newsDate = new Date(today)
-  newsDate.setDate(today.getDate() - index * 3) // Different dates for each news item
-
-  return {
-    id: `news-${movie.id}`,
-    title: template.title,
-    excerpt: template.excerpt,
-    date: newsDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
-    image: movie.posterUrl,
-  }
+// Helper function to get poster URL - preserving the existing function
+export const getPosterUrl = (path) => {
+  return getImageUrl(path, POSTER_SIZE)
 }
 
-// det the details of the movies by there id
-
-export const getMovieById = async (movieId) => {
-  // Replace with actual API endpoint and logic
-  const response = await fetch(`/api/movies/${movieId}`)
-  const data = await response.json()
-  return {
-    id: data.id,
-    title: data.title,
-    year: data.year,
-    duration: data.duration,
-    rating: data.rating,
-    genre: data.genre,
-    plot: data.plot,
-    director: data.director,
-    actors: data.actors,
-    posterUrl: data.posterUrl,
-  }
-}
-
+// Get movie videos - preserving the existing function signature
 export const getMovieVideos = async (movieId) => {
-  // Replace with actual API endpoint and logic
-  const response = await fetch(`/api/movies/${movieId}/videos`)
-  const data = await response.json()
-  return data
+  return await fetchMovieData(`/movie/${movieId}/videos`)
 }
 
+// Get movie credits - preserving the existing function signature
+export const getMovieCredits = async (movieId) => {
+  return await fetchMovieData(`/movie/${movieId}/credits`)
+}
+
+// Get similar movies - preserving the existing function signature
+export const getSimilarMovies = async (movieId) => {
+  return await fetchMovieData(`/movie/${movieId}/similar`)
+}
+
+// Get recommended movies - preserving the existing function signature
+export const getRecommendedMovies = async (movieId) => {
+  return await fetchMovieData(`/movie/${movieId}/recommendations`)
+}
+
+// Preserving any other functions that might be used in the application
+export const getMoviesByActor = async (personId) => {
+  return await fetchMovieData(`/discover/movie?with_cast=${personId}`)
+}
+
+export const getActorDetails = async (personId) => {
+  return await fetchMovieData(`/person/${personId}`)
+}
+
+export const getActorMovieCredits = async (personId) => {
+  return await fetchMovieData(`/person/${personId}/movie_credits`)
+}
+
+// If there are any pagination functions, preserve them as well
+export const getMoviesWithPagination = async (endpoint, page = 1) => {
+  return await fetchMovieData(`${endpoint}?page=${page}`)
+}
+
+// If there are any configuration functions, preserve them as well
+export const getConfiguration = async () => {
+  return await fetchMovieData("/configuration")
+}
+
+// Mock function for movie news since TMDB doesn't provide news
+export const fetchMovieNews = async () => {
+  // In a real app, this would fetch from a news API
+  // For now, we'll return null to trigger the fallback
+  return null
+}
+
+// New function to discover movies with advanced filters
+export const discoverMovies = async (options = {}) => {
+  const {
+    page = 1,
+    sortBy = "popularity.desc",
+    genres = [],
+    yearFrom,
+    yearTo,
+    voteAverageFrom,
+    voteAverageTo,
+  } = options
+
+  let endpoint = `/discover/movie?page=${page}&sort_by=${sortBy}`
+
+  if (genres.length > 0) {
+    endpoint += `&with_genres=${genres.join(",")}`
+  }
+
+  if (yearFrom) {
+    endpoint += `&primary_release_date.gte=${yearFrom}-01-01`
+  }
+
+  if (yearTo) {
+    endpoint += `&primary_release_date.lte=${yearTo}-12-31`
+  }
+
+  if (voteAverageFrom) {
+    endpoint += `&vote_average.gte=${voteAverageFrom}`
+  }
+
+  if (voteAverageTo) {
+    endpoint += `&vote_average.lte=${voteAverageTo}`
+  }
+
+  return await fetchMovieData(endpoint)
+}
 

@@ -1,50 +1,51 @@
 "use client"
-import { useState, useEffect } from "react"
+
+import { useState } from "react"
 import Hero from "./Hero"
-import TrendingMovies from "./TrendingMovies"
-import RecommendedMovies from "./RecommendedMovies"
+import MovieSlider from "./MovieSlider"
+import MovieDetailsModal from "./MovieDetailsModal"
 import {
+  getPopularMovies,
+  getTopRatedMovies,
+  getNowPlayingMovies,
+  getUpcomingMovies,
   getTrendingMovies,
-  getRecommendedMovies,
-  getTrendingMoviesSync,
-  getRecommendedMoviesSync,
-} from "../data/movies"
+  getMovieDetails,
+} from "../services/api"
 
-function Home() {
-  const [trendingMovies, setTrendingMovies] = useState(getTrendingMoviesSync())
-  const [recommendedMovies, setRecommendedMovies] = useState(getRecommendedMoviesSync())
-  const [loading, setLoading] = useState(true)
+const Home = () => {
+  const [selectedMovie, setSelectedMovie] = useState(null)
+  const [movieDetails, setMovieDetails] = useState(null)
 
-  useEffect(() => {
-    const fetchMovieData = async () => {
-      try {
-        setLoading(true)
-        const [trending, recommended] = await Promise.all([getTrendingMovies(), getRecommendedMovies()])
+  const handleMovieClick = async (movie) => {
+    setSelectedMovie(movie)
 
-        setTrendingMovies(trending)
-        setRecommendedMovies(recommended)
-      } catch (error) {
-        console.error("Error fetching movie data:", error)
-      } finally {
-        setLoading(false)
-      }
+    try {
+      const details = await getMovieDetails(movie.id)
+      setMovieDetails(details)
+    } catch (err) {
+      console.error("Error fetching movie details:", err)
     }
+  }
 
-    fetchMovieData()
-  }, [])
+  const handleCloseModal = () => {
+    setSelectedMovie(null)
+    setMovieDetails(null)
+  }
 
   return (
-    <>
-      <Hero />
-      {loading ? (
-        <div className="container mx-auto px-6 py-10 text-white text-center">Loading movies...</div>
-      ) : (
-        <>
-          <TrendingMovies movies={trendingMovies} />
-          <RecommendedMovies movies={recommendedMovies} />
-        </>
-      )}
-    </>
+    <div className="bg-dark min-h-screen pt-16">
+      <Hero fetchFunction={getTrendingMovies} onMovieClick={handleMovieClick} />
+
+      <div className="container mx-auto">
+        <MovieSlider title="Now Playing" fetchFunction={getNowPlayingMovies} onMovieClick={handleMovieClick} />
+        <MovieSlider title="Popular" fetchFunction={getPopularMovies} onMovieClick={handleMovieClick} />
+        <MovieSlider title="Top Rated" fetchFunction={getTopRatedMovies} onMovieClick={handleMovieClick} />
+        <MovieSlider title="Upcoming" fetchFunction={getUpcomingMovies} onMovieClick={handleMovieClick} />
+      </div>
+
+      {selectedMovie && movieDetails && <MovieDetailsModal movie={movieDetails} onClose={handleCloseModal} />}
+    </div>
   )
 }
 
