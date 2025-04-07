@@ -9,38 +9,45 @@ const MovieCard = ({ movie, onClick, variant = "default" }) => {
     }
   }
 
-  // Compact variant for home page and sliders
+  const releaseYear =
+    movie.release_date || movie.first_air_date
+      ? new Date(movie.release_date || movie.first_air_date).getFullYear()
+      : null
+
+  const rating = movie.vote_average ? movie.vote_average.toFixed(1) : "N/A"
+  const title = movie.title || movie.name || "Untitled"
+  const posterUrl = movie.poster_path ? getPosterUrl(movie.poster_path) : null
+
+  // Compact variant for sliders - smaller to fit at least 5 per row
   if (variant === "compact") {
     return (
       <div
-        className="relative overflow-hidden rounded-md shadow-md transition-transform duration-300 hover:scale-105 cursor-pointer bg-dark-lighter"
+        className="group relative overflow-hidden rounded-md transition-all duration-300 hover:scale-105 hover:shadow-md cursor-pointer bg-gray-900"
         onClick={handleClick}
+        style={{ width: "100%", maxWidth: "160px" }}
       >
-        <div className="aspect-[1/2] w-40">
-          {movie.poster_path ? (
+        <div className="aspect-[2/3] w-full overflow-hidden">
+          {posterUrl ? (
             <img
-              src={getPosterUrl(movie.poster_path) || "/placeholder.svg"}
-              alt={movie.title || movie.name}
-              className="w-full h-full object-cover"
+              src={posterUrl || "/placeholder.svg"}
+              alt={title}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-dark-light text-white p-1 text-center">
-              <span className="text-xs font-medium">{movie.title || movie.name}</span>
+            <div className="flex h-full w-full items-center justify-center bg-gray-800 p-2 text-center">
+              <span className="text-xs font-medium text-gray-200 line-clamp-3">{title}</span>
             </div>
           )}
-          <div className="absolute top-1 right-1 bg-black/70 text-yellow-500 text-xs font-bold px-1 py-0.5 rounded flex items-center">
-            <Star size={8} className="mr-0.5" />
-            {movie.vote_average ? movie.vote_average.toFixed(1) : "N/A"}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80" />
+          <div className="absolute top-1 right-1 flex items-center rounded-full bg-black/60 px-1 py-0.5 text-[10px] font-semibold backdrop-blur-sm">
+            <Star size={8} className="mr-0.5 text-yellow-400" fill="currentColor" />
+            <span className="text-white">{rating}</span>
           </div>
         </div>
-        <div className="p-1">
-          <h3 className="text-white text-xs font-medium truncate text-[10px]">{movie.title || movie.name}</h3>
-          {(movie.release_date || movie.first_air_date) && (
-            <p className="text-gray-400 text-[9px]">
-              {new Date(movie.release_date || movie.first_air_date).getFullYear()}
-            </p>
-          )}
+        <div className="absolute bottom-0 w-full p-1.5">
+          <h3 className="text-[11px] font-medium text-white line-clamp-1">{title}</h3>
+          {releaseYear && <p className="mt-0.5 text-[9px] text-gray-300">{releaseYear}</p>}
         </div>
       </div>
     )
@@ -49,34 +56,31 @@ const MovieCard = ({ movie, onClick, variant = "default" }) => {
   // Default variant for other pages
   return (
     <div
-      className="relative overflow-hidden rounded-lg shadow-lg transition-transform duration-300 hover:scale-105 cursor-pointer bg-dark-lighter"
+      className="group relative overflow-hidden rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer bg-gray-900"
       onClick={handleClick}
     >
-      <div className="aspect-[2/3] w-full">
-        {movie.poster_path ? (
+      <div className="aspect-[2/3] w-full overflow-hidden">
+        {posterUrl ? (
           <img
-            src={getPosterUrl(movie.poster_path) || "/placeholder.svg"}
-            alt={movie.title || movie.name}
-            className="w-full h-full object-cover"
+            src={posterUrl || "/placeholder.svg"}
+            alt={title}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-dark-light text-white p-4 text-center">
-            <span className="text-sm font-medium">{movie.title || movie.name}</span>
+          <div className="flex h-full w-full items-center justify-center bg-gray-800 p-4 text-center">
+            <span className="text-sm font-medium text-gray-200">{title}</span>
           </div>
         )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-80" />
       </div>
-      <div className="p-3 bg-dark-lighter">
-        <h3 className="text-white font-semibold text-sm truncate">{movie.title || movie.name}</h3>
-        <div className="flex justify-between items-center mt-1">
-          {(movie.release_date || movie.first_air_date) && (
-            <p className="text-gray-400 text-xs">
-              {new Date(movie.release_date || movie.first_air_date).getFullYear()}
-            </p>
-          )}
+      <div className="absolute bottom-0 w-full transform bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3 transition-all duration-300">
+        <h3 className="text-sm font-medium text-white line-clamp-1">{title}</h3>
+        <div className="mt-1 flex items-center justify-between">
+          {releaseYear && <p className="text-xs text-gray-300">{releaseYear}</p>}
           <div className="flex items-center">
-            <span className="text-yellow-500 mr-1">★</span>
-            <span className="text-gray-300 text-xs">{movie.vote_average ? movie.vote_average.toFixed(1) : "N/A"}</span>
+            <Star size={12} className="mr-1 text-yellow-400" fill="currentColor" />
+            <span className="text-xs font-medium text-gray-200">{rating}</span>
           </div>
         </div>
       </div>

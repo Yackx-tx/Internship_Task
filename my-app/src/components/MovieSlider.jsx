@@ -35,8 +35,9 @@ const MovieSlider = ({ title, fetchFunction, onMovieClick }) => {
 
   const scrollLeft = () => {
     if (sliderRef.current) {
+      const scrollAmount = sliderRef.current.clientWidth * 0.8
       sliderRef.current.scrollBy({
-        left: -800,
+        left: -scrollAmount,
         behavior: "smooth",
       })
     }
@@ -44,8 +45,9 @@ const MovieSlider = ({ title, fetchFunction, onMovieClick }) => {
 
   const scrollRight = () => {
     if (sliderRef.current) {
+      const scrollAmount = sliderRef.current.clientWidth * 0.8
       sliderRef.current.scrollBy({
-        left: 800,
+        left: scrollAmount,
         behavior: "smooth",
       })
     }
@@ -56,8 +58,8 @@ const MovieSlider = ({ title, fetchFunction, onMovieClick }) => {
       <div className="py-4">
         <h2 className="text-white text-xl font-semibold mb-2 px-4">{title}</h2>
         <div className="flex gap-2 px-4 overflow-hidden">
-          {[...Array(12)].map((_, index) => (
-            <div key={index} className="min-w-[80px] h-[140px] bg-dark-light animate-pulse rounded-md" />
+          {[...Array(5)].map((_, index) => (
+            <div key={index} className="min-w-[160px] h-[240px] bg-gray-800 animate-pulse rounded-md" />
           ))}
         </div>
       </div>
@@ -70,29 +72,29 @@ const MovieSlider = ({ title, fetchFunction, onMovieClick }) => {
 
   return (
     <div className="py-4 relative group">
-      <div className="flex items-center justify-between mb-2 px-4">
+      <div className="flex items-center justify-between mb-3 px-4">
         <h2 className="text-white text-xl font-semibold">{title}</h2>
       </div>
 
       <div className="relative">
         {/* Left Arrow */}
         <button
-          className="absolute left-1 top-1/2 -translate-y-1/2 z-10 bg-black/70 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0 hover:bg-black/90"
           onClick={scrollLeft}
           disabled={loading}
           aria-label="Scroll left"
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft size={18} />
         </button>
 
         {/* Slider */}
         <div
           ref={sliderRef}
-          className="flex gap-4 overflow-x-auto px-4 pb-2 scrollbar-hide snap-x"
+          className="flex gap-3 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {movies.map((movie) => (
-            <div key={movie.id} className="min-w-[80px] snap-start" style={{ flex: "0 0 auto" }}>
+            <div key={movie.id} className="w-[160px] flex-shrink-0 snap-start">
               <MovieCard movie={movie} onClick={onMovieClick} variant="compact" />
             </div>
           ))}
@@ -100,12 +102,12 @@ const MovieSlider = ({ title, fetchFunction, onMovieClick }) => {
 
         {/* Right Arrow */}
         <button
-          className="absolute right-1 top-1/2 -translate-y-1/2 z-10 bg-black/70 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0 hover:bg-black/90"
           onClick={scrollRight}
           disabled={loading}
           aria-label="Scroll right"
         >
-          <ChevronRight size={16} />
+          <ChevronRight size={18} />
         </button>
       </div>
     </div>
